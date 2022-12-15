@@ -28,6 +28,50 @@
 sem_t mult_sem, div_sem, add_sem, sub_sem, sqrt_sem;
 sem_t sync_mult_sem, sync_div_sem, sync_add_sem, sync_sub_sem, sync_sqrt_sem;
 pthread_t mult_thread, div_thread, add_thread, sub_thread, sqrt_thread;
+double a = 3;
+double b = 6;
+double c = 9;
+
+struct OperationStructure{
+    float originalValue;
+    float modificationValue;
+};
+
+void* lab_add(struct OperationStructure** ptr, float valueToAdd){
+    while (1){
+        sem_wait(&add_sem);
+        
+
+        (*ptr)->originalValue +=(*ptr)->modificationValue;
+
+         printf("%.2f %.2f", (*ptr)->originalValue, (*ptr)->modificationValue);
+        sem_post(&sync_add_sem);   
+    }
+}
+
+void* lab_sub(void* ptr){
+    while (1){
+        float* buffer = (float*)ptr;
+    }
+}
+
+void* lab_mult(void* ptr){
+    while (1){
+
+    }
+}
+
+void* lab_div(void* ptr){
+    while (1){
+
+    }
+}
+
+void* lab_sqrt(void* ptr){
+    while (1){
+
+    }
+}
 
 int inputValues (double *a, double *b, double *c){
     printf("Input a: \n");
@@ -61,46 +105,61 @@ void initSemaphors(){
     sem_init(&sync_sqrt_sem, 0, 0);
 }
 
-void initThreads(){
-    // pthread_create(&disp_sum_thread, NULL, &disp_sum,NULL);
-	// pthread_create(&disp_mult_thread, NULL, &disp_mult,NULL);
-	// pthread_create(&disp_diff_thread, NULL,&disp_diff,NULL);
-	// pthread_create(&disp_div_thread, NULL,&disp_div,NULL);
+void initThreads(struct OperationStructure**  ptr){
+    pthread_create(&mult_thread, NULL, &lab_mult, ptr);
+	pthread_create(&add_thread, NULL, &lab_add, ptr);
 }
+
+
 
 int main() {
 
-    double a = 3;
-    double b = 6;
-    double c = 9;
+    struct OperationStructure* ptr;
+    struct OperationStructure** ptrToPtr = &ptr;
 
-    //initSemaphors();
+
+    initSemaphors();
+    initThreads(ptrToPtr);
     // inputValues(&a, &b, &c);
 
     char* name = "lab1_shm\n\r";
     int shmDesc = shm_open(name, O_RDWR | O_CREAT,  READWRITE_PERMISSION);
     checkForError(shmDesc, "Shared memory open error");
 
-    int truncateReturnCode = ftruncate(shmDesc, SHMSIZE);
+    int truncateReturnCode = ftruncate (shmDesc, sizeof(struct OperationStructure));
     checkForError(truncateReturnCode, "Setting Shared Memory Size error");
     
-    void* ptr = mmap(NULL, SHMSIZE, PROT_WRITE, MAP_SHARED, shmDesc, 0);
+    ptr = (struct OperationStructure*) mmap(NULL, SHMSIZE, PROT_WRITE, MAP_SHARED, shmDesc, 0);
     checkForError(ptr, "Mapping memory error");
     
-    sprintf(ptr, "%s", name);
+    (*ptrToPtr)->modificationValue = 5;
+    (*ptrToPtr)->originalValue = 0;
+    printf("%.2f %.2f", (*ptrToPtr)->originalValue, (*ptrToPtr)->modificationValue);
+    printf("%s", "\n\r");
+    sem_post(&add_sem);
+    sem_wait(&sync_add_sem);
+    printf("%s", "\n\r");
+    printf("%.2f %.2f", (*ptrToPtr)->originalValue, (*ptrToPtr)->modificationValue);
+    // printf("%s", "\n\r");
+
+
+    // sprintf(ptr,"%9.6f", os.modificationValdue);
+
+    // printf("%s", "\n\r");
+    // printf("%p\n", (void *) ptr);
+    // printf("%f", ptr);
+    // printf("%s", "\n\r");
+    // ptr -= sizeof(os.modificationValue);
+    // printf("%p\n", (void *) ptr);
+    // printf("%s", test);
     
-
-    char* test = (char*)ptr;
-
-    printf("%s", test);
+    // char* name1 = "lab2_shm\n\r";
     
-    char* name1 = "lab2_shm\n\r";
-    
-    sprintf(ptr, "%s", name1);
+    // sprintf(ptr, "%s", name1);
 
-    char* test1 = (char*)ptr;
+    // char* test1 = (char*)ptr;
 
-    printf("%s", test1);
+    // printf("%s", test1);
 
 
     close(ptr);
