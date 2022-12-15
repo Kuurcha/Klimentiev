@@ -90,15 +90,15 @@ int main() {
     sprintf(ptr, "%s", name);
     
 
-    char* test = &ptr;
+    char* test = (char*)ptr;
 
-    printf("%s", &ptr);
+    printf("%s", test);
     
     char* name1 = "lab2_shm\n\r";
     
     sprintf(ptr, "%s", name1);
 
-    char* test1 = &ptr;
+    char* test1 = (char*)ptr;
 
     printf("%s", test1);
 
