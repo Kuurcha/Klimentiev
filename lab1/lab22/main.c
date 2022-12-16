@@ -21,16 +21,33 @@
 
 #include <pthread.h>
 #include <semaphore.h>
-
 #define SHMSIZE 128
 #define READWRITE_PERMISSION 0666
 
-sem_t mult_sem, div_sem, add_sem, sub_sem, sqrt_sem;
-sem_t sync_mult_sem, sync_div_sem, sync_add_sem, sync_sub_sem, sync_sqrt_sem;
+#define ADD_PROGRAM "./addition"
+#define DIVISION_PROGRAM "./division"
+#define MULTIPLICATION_PROGRAM "./multiplication"
+#define SQAREROOT_PROGRAM "./squareRoot"
+#define SUBSTRACTION_PROGRAM "./substraction"
+#define MAIN_PROGRAM "./main"
+
+
+#define MAIN_SEMAPHOR "main"
+#define ADD_SEMAPHOR "addition"
+#define DIVISION_SEMAPHOR "division"
+#define MULTIPLICATION_SEMAPHOR "multiplication"
+#define SUBSTRACTION_SEMAPHOR "substraction"
+#define SQUAREROOT_SEMAPHOR "squareRoot"
+
+
+sem_t* mult_sem, div_sem, add_sem, sub_sem, sqrt_sem;
+sem_t* main_sem;
 pthread_t mult_thread, div_thread, add_thread, sub_thread, sqrt_thread;
 double a = 3;
 double b = 6;
 double c = 9;
+
+
 
 struct OperationStructure{
     float originalValue;
@@ -45,31 +62,40 @@ void* lab_add(struct OperationStructure** ptr, float valueToAdd){
         (*ptr)->originalValue +=(*ptr)->modificationValue;
 
          printf("%.2f %.2f", (*ptr)->originalValue, (*ptr)->modificationValue);
-        sem_post(&sync_add_sem);   
+        sem_post(&main_sem);   
     }
 }
 
-void* lab_sub(void* ptr){
+
+void* lab_sub(struct OperationStructure** ptr){
     while (1){
-        float* buffer = (float*)ptr;
+        sem_wait(&sub_sem);
+        (*ptr)->originalValue -=(*ptr)->modificationValue;
+        sem_post(&main_sem);
     }
 }
 
-void* lab_mult(void* ptr){
+void* lab_mult(struct OperationStructure** ptr){
     while (1){
-
+        sem_wait(&mult_sem);
+        (*ptr)->originalValue *=(*ptr)->modificationValue;
+        sem_post(&main_sem);
     }
 }
 
-void* lab_div(void* ptr){
+void* lab_div(struct OperationStructure** ptr){
     while (1){
-
+        sem_wait(&div_sem);
+        (*ptr)->originalValue /=(*ptr)->modificationValue;
+        sem_post(&main_sem);
     }
 }
 
-void* lab_sqrt(void* ptr){
+void* lab_sqrt(struct OperationStructure** ptr){
     while (1){
-
+        sem_wait(&sqrt_sem);
+        (*ptr)->originalValue /=(*ptr)->modificationValue;
+        sem_post(&main_sem);
     }
 }
 
@@ -98,21 +124,23 @@ void initSemaphors(){
 	sem_init(&add_sem,0,0);
 	sem_init(&sub_sem,0,0);
 	sem_init(&sqrt_sem,0,0);
-	sem_init(&sync_mult_sem,0,0);
-	sem_init(&sync_div_sem,0,0);
-	sem_init(&sync_add_sem,0,0);
-    sem_init(&sync_sub_sem, 0, 0);
-    sem_init(&sync_sqrt_sem, 0, 0);
+    sem_init(&main_sem, 0, 0);
+    // sem_unlink(MAIN_SEMAPHOR);
+    // sem_unlink(ADD_SEMAPHOR);
+    // sem_unlink(SUBSTRACTION_SEMAPHOR);
+	// sem_unlink(MULTIPLICATION_SEMAPHOR);
+	// sem_unlink(DIVISION_SEMAPHOR);
+	// sem_unlink(SQUAREROOT_SEMAPHOR);
+
 }
 
 void initThreads(struct OperationStructure**  ptr){
-    pthread_create(&mult_thread, NULL, &lab_mult, ptr);
+    pthread_create(&sub_thread, NULL, &lab_sub, ptr);
 	pthread_create(&add_thread, NULL, &lab_add, ptr);
 }
 
-
-
 int main() {
+    // pid_t p1, p2, p3, p4, p5;
 
     struct OperationStructure* ptr;
     struct OperationStructure** ptrToPtr = &ptr;
@@ -132,14 +160,33 @@ int main() {
     ptr = (struct OperationStructure*) mmap(NULL, SHMSIZE, PROT_WRITE, MAP_SHARED, shmDesc, 0);
     checkForError(ptr, "Mapping memory error");
     
+
+    // p1 = fork();
+    // if (p1 == 0){
+    //     execl(ADD_PROGRAM, ADD_PROGRAM, NULL);
+    // }
+
+    // p2 = fork();
+    // if (p1 == 0){
+    //     execl(ADD_PROGRAM, ADD_PROGRAM, NULL);
+    // }
+
+
     (*ptrToPtr)->modificationValue = 5;
     (*ptrToPtr)->originalValue = 0;
     printf("%.2f %.2f", (*ptrToPtr)->originalValue, (*ptrToPtr)->modificationValue);
     printf("%s", "\n\r");
     sem_post(&add_sem);
-    sem_wait(&sync_add_sem);
+    sem_wait(&main_sem);
     printf("%s", "\n\r");
     printf("%.2f %.2f", (*ptrToPtr)->originalValue, (*ptrToPtr)->modificationValue);
+    (*ptrToPtr)->modificationValue = 10;
+    sem_post(&sub_sem);
+    sem_wait(&main_sem);
+    printf("%s", "\n\r");
+    printf("%.2f %.2f", (*ptrToPtr)->originalValue, (*ptrToPtr)->modificationValue);
+    printf("%s", "\n\r");
+
     // printf("%s", "\n\r");
 
 

@@ -2,5 +2,5 @@
     "files.associations": {
         "types.h": "c",
         "stat.h": "c"
-    }
+    },
 }
