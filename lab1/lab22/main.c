@@ -3,56 +3,25 @@
 // D - Семафоры 
 // H - Разделяемая память
 // L - Квадратное уравнение
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
-
-#include <sys/types.h>
-
-// Семафоры
-#include <sys/sem.h>
-#include <sys/ipc.h>
-
-//Разедялемая память
-#include <sys/mman.h>
-#include <sys/stat.h>        /* For mode constants */
-#include <fcntl.h>           /* For O_* constants */
+#include "sharedLib.h"
 
 #include <pthread.h>
 #include <semaphore.h>
-#define SHMSIZE 128
-#define READWRITE_PERMISSION 0666
-
-#define ADD_PROGRAM "./addition"
-#define DIVISION_PROGRAM "./division"
-#define MULTIPLICATION_PROGRAM "./multiplication"
-#define SQAREROOT_PROGRAM "./squareRoot"
-#define SUBSTRACTION_PROGRAM "./substraction"
-#define MAIN_PROGRAM "./main"
+//Константы и структура для операций и с общими библиотеками
 
 
-#define MAIN_SEMAPHOR "main"
-#define ADD_SEMAPHOR "addition"
-#define DIVISION_SEMAPHOR "division"
-#define MULTIPLICATION_SEMAPHOR "multiplication"
-#define SUBSTRACTION_SEMAPHOR "substraction"
-#define SQUAREROOT_SEMAPHOR "squareRoot"
-
-
-sem_t* mult_sem, div_sem, add_sem, sub_sem, sqrt_sem;
+sem_t* mult_sem;
+sem_t* add_sem;
 sem_t* main_sem;
+sem_t* div_sem;
+sem_t* sub_sem;
+sem_t* sqrt_sem;
 pthread_t mult_thread, div_thread, add_thread, sub_thread, sqrt_thread;
 double a = 3;
 double b = 6;
 double c = 9;
 
-
-
-struct OperationStructure{
-    float originalValue;
-    float modificationValue;
-};
 
 void* lab_add(struct OperationStructure** ptr, float valueToAdd){
     while (1){
@@ -111,26 +80,25 @@ int inputValues (double *a, double *b, double *c){
     printf(" Коеф3: %f", c);
 }
 
-void checkForError(int errorVariable, char* errorMessage){
-        if (errorVariable == -1){
+
+sem_t* createSem(sem_t* sem, char* errorMessage, char* semName){
+    sem = sem_open(semName, O_CREAT | O_EXCL, SEMAPHOR_PERMISSIONS, INITIAL_VALUE);
+    if (sem == SEM_FAILED){
         perror(errorMessage);
         exit(1);
     }
+    return sem;
 }
 
 void initSemaphors(){
-    sem_init(&mult_sem,0,0);
-	sem_init(&div_sem,0,0);
-	sem_init(&add_sem,0,0);
-	sem_init(&sub_sem,0,0);
-	sem_init(&sqrt_sem,0,0);
-    sem_init(&main_sem, 0, 0);
-    // sem_unlink(MAIN_SEMAPHOR);
-    // sem_unlink(ADD_SEMAPHOR);
-    // sem_unlink(SUBSTRACTION_SEMAPHOR);
-	// sem_unlink(MULTIPLICATION_SEMAPHOR);
-	// sem_unlink(DIVISION_SEMAPHOR);
-	// sem_unlink(SQUAREROOT_SEMAPHOR);
+    sem_unlink(MAIN_SEMAPHOR);
+    sem_unlink(ADD_SEMAPHOR);
+
+
+    main_sem = createSem(main_sem, "Error while creating main sem", MAIN_SEMAPHOR);
+    add_sem = createSem(add_sem, "Error while creating main sem", ADD_SEMAPHOR);
+
+
 
 }
 
@@ -140,52 +108,41 @@ void initThreads(struct OperationStructure**  ptr){
 }
 
 int main() {
-    // pid_t p1, p2, p3, p4, p5;
+    pid_t p1, p2, p3, p4, p5;
 
     struct OperationStructure* ptr;
     struct OperationStructure** ptrToPtr = &ptr;
 
 
     initSemaphors();
-    initThreads(ptrToPtr);
+    //initThreads(ptrToPtr);
     // inputValues(&a, &b, &c);
 
-    char* name = "lab1_shm\n\r";
-    int shmDesc = shm_open(name, O_RDWR | O_CREAT,  READWRITE_PERMISSION);
-    checkForError(shmDesc, "Shared memory open error");
-
-    int truncateReturnCode = ftruncate (shmDesc, sizeof(struct OperationStructure));
-    checkForError(truncateReturnCode, "Setting Shared Memory Size error");
+    ptr = allocateShm();
     
-    ptr = (struct OperationStructure*) mmap(NULL, SHMSIZE, PROT_WRITE, MAP_SHARED, shmDesc, 0);
-    checkForError(ptr, "Mapping memory error");
-    
+    ptr->originalValue= 0;
+    ptr->modificationValue= 5;
+    printf("%.2f %.2f",  ptr->originalValue, ptr->modificationValue);
+    printf("%s", "\n\r");
 
     // p1 = fork();
     // if (p1 == 0){
     //     execl(ADD_PROGRAM, ADD_PROGRAM, NULL);
     // }
 
-    // p2 = fork();
-    // if (p1 == 0){
-    //     execl(ADD_PROGRAM, ADD_PROGRAM, NULL);
-    // }
 
 
-    (*ptrToPtr)->modificationValue = 5;
-    (*ptrToPtr)->originalValue = 0;
-    printf("%.2f %.2f", (*ptrToPtr)->originalValue, (*ptrToPtr)->modificationValue);
-    printf("%s", "\n\r");
-    sem_post(&add_sem);
-    sem_wait(&main_sem);
-    printf("%s", "\n\r");
-    printf("%.2f %.2f", (*ptrToPtr)->originalValue, (*ptrToPtr)->modificationValue);
-    (*ptrToPtr)->modificationValue = 10;
-    sem_post(&sub_sem);
-    sem_wait(&main_sem);
-    printf("%s", "\n\r");
-    printf("%.2f %.2f", (*ptrToPtr)->originalValue, (*ptrToPtr)->modificationValue);
-    printf("%s", "\n\r");
+
+    // sem_post(&add_sem);
+    // sem_wait(&main_sem);
+    // printf("%s", "\n\r");
+    // printf("%.2f %.2f", (*ptrToPtr)->originalValue, (*ptrToPtr)->modificationValue);
+    // (*ptrToPtr)->modificationValue = 10;
+    // sem_post(&sub_sem);
+    // sem_wait(&main_sem);
+    // printf("%s", "\n\r");
+    // printf("%.2f %.2f", (*ptrToPtr)->originalValue, (*ptrToPtr)->modificationValue);
+    // printf("%s", "\n\r");
 
     // printf("%s", "\n\r");
 
@@ -210,7 +167,7 @@ int main() {
 
 
     close(ptr);
-    shm_unlink(name);
+    shm_unlink(SHM_NAME);
     // int r, f, i;
     // char *m;
     // f = open("/dev/mem", O_RDONLY, 0);
