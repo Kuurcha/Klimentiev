@@ -1,30 +1,28 @@
-
-// Семафоры
-#include <sys/sem.h>
-#include <sys/ipc.h>
-
-
+#include "sharedLib.h"
 //Константы и структура для операций
-#include <sharedLib.h>
-void* lab_add(struct OperationStructure** ptr){
-    while (1){
-        sem_wait(&add_sem);
-        (*ptr)->originalValue +=(*ptr)->modificationValue;
- 
-    }
-}
-sem_t* main_sem;
-sem_t* add_sem;
+
+
 int main() {
-    char* name = "lab1_shm\n\r";
-    int shmDesc = shm_open(name, O_RDWR | O_CREAT,  READWRITE_PERMISSION);
+
+    // sem_t* add_sem;
+
     
-    main_sem = createSem(main_sem, "Error while creating main sem", MAIN_SEMAPHOR);
-    add_sem = createSem(add_sem, "Error while creating main sem", ADD_SEMAPHOR);
-	
-	
-	while(1) {
-		add_process();
-	}
+    // add_sem = sem_open(ADD_SEMAPHOR, 0);
+    // sem_wait(&add_sem);
+
+    // sem_t* main_sem;
+    // main_sem = sem_open(MAIN_SEMAPHOR, 0);
+	// printf("%s", "waiting for add_sem release");
+
+    //     printf("%s", "addition process initialisation");
+    // char* name = "lab1_shm\n\r";
+    // struct OperationStructure* ptr = allocateShm();
+    // sem_post(&main_sem); 
+	// while(1) {
+    //     sem_wait(&add_sem);
+	// 	ptr->originalValue +=ptr->modificationValue;
+    //     printf("%s", "releasing main_sem");
+    //     sem_post(&main_sem); 
+	// }
 	return 0;
 }

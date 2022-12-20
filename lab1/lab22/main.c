@@ -7,33 +7,19 @@
 #include "sharedLib.h"
 
 #include <pthread.h>
-#include <semaphore.h>
 //Константы и структура для операций и с общими библиотеками
 
 
-sem_t* mult_sem;
-sem_t* add_sem;
-sem_t* main_sem;
-sem_t* div_sem;
-sem_t* sub_sem;
-sem_t* sqrt_sem;
+sem_t *mult_sem;
+sem_t *add_sem;
+sem_t *main_sem;
+sem_t *div_sem;
+sem_t *sub_sem;
+sem_t *sqrt_sem;
 pthread_t mult_thread, div_thread, add_thread, sub_thread, sqrt_thread;
 double a = 3;
 double b = 6;
 double c = 9;
-
-
-void* lab_add(struct OperationStructure** ptr, float valueToAdd){
-    while (1){
-        sem_wait(&add_sem);
-        
-
-        (*ptr)->originalValue +=(*ptr)->modificationValue;
-
-         printf("%.2f %.2f", (*ptr)->originalValue, (*ptr)->modificationValue);
-        sem_post(&main_sem);   
-    }
-}
 
 
 void* lab_sub(struct OperationStructure** ptr){
@@ -80,42 +66,41 @@ int inputValues (double *a, double *b, double *c){
     printf(" Коеф3: %f", c);
 }
 
-
-sem_t* createSem(sem_t* sem, char* errorMessage, char* semName){
-    sem = sem_open(semName, O_CREAT | O_EXCL, SEMAPHOR_PERMISSIONS, INITIAL_VALUE);
+void createSem(sem_t* sem, char* errorMessage, const char * semName, unsigned int initialValue){
+    sem = sem_open(semName, O_CREAT | O_EXCL, SEMAPHOR_PERMISSIONS, initialValue);
     if (sem == SEM_FAILED){
         perror(errorMessage);
         exit(1);
     }
-    return sem;
 }
 
-void initSemaphors(){
+
+void delete_semaphores(){
+    sem_close(main_sem);
+    sem_close(add_sem);
     sem_unlink(MAIN_SEMAPHOR);
     sem_unlink(ADD_SEMAPHOR);
 
-
-    main_sem = createSem(main_sem, "Error while creating main sem", MAIN_SEMAPHOR);
-    add_sem = createSem(add_sem, "Error while creating main sem", ADD_SEMAPHOR);
-
-
+}
+void initSemaphors(){
+    sem_close(main_sem);
+    sem_close(add_sem);
+    sem_unlink(MAIN_SEMAPHOR);
+    sem_unlink(ADD_SEMAPHOR);
+    // createSem(main_sem, "Error while creating main sem", MAIN_SEMAPHOR, 0);
+    // createSem(add_sem, "Error while creating add sem", ADD_SEMAPHOR, 1);
 
 }
 
-void initThreads(struct OperationStructure**  ptr){
-    pthread_create(&sub_thread, NULL, &lab_sub, ptr);
-	pthread_create(&add_thread, NULL, &lab_add, ptr);
-}
 
 int main() {
     pid_t p1, p2, p3, p4, p5;
 
     struct OperationStructure* ptr;
-    struct OperationStructure** ptrToPtr = &ptr;
 
 
-    initSemaphors();
-    //initThreads(ptrToPtr);
+
+//    initThreads(ptrToPtr);
     // inputValues(&a, &b, &c);
 
     ptr = allocateShm();
@@ -124,17 +109,35 @@ int main() {
     ptr->modificationValue= 5;
     printf("%.2f %.2f",  ptr->originalValue, ptr->modificationValue);
     printf("%s", "\n\r");
+    
+    initSemaphors();
 
+
+    main_sem = sem_open(MAIN_SEMAPHOR, O_RDWR |O_CREAT | O_EXCL, SEMAPHOR_PERMISSIONS, 1);
+    if (main_sem == SEM_FAILED){
+        perror( "Error while creating main sem");
+        exit(1);
+    }
+
+    add_sem = sem_open(ADD_SEMAPHOR, O_RDWR | O_CREAT | O_EXCL, SEMAPHOR_PERMISSIONS, 0);
+    if (add_sem == ADD_SEMAPHOR){
+        perror( "Error while creating add sem");
+        exit(1);
+    }
     // p1 = fork();
     // if (p1 == 0){
-    //     execl(ADD_PROGRAM, ADD_PROGRAM, NULL);
+    //     execl(ADD_PROGRAM, ADD_PROGRAM, (char *) NULL);
     // }
 
-
-
-
-    // sem_post(&add_sem);
+    printf("%f", p1);
+    printf("%s", "\n\r");
+    printf("%s", "posting add_sem..");
+     printf("%s", "\n\r");
+    sem_post(&add_sem);
+    printf("%s", "waiting for main_sem to release...");
     // sem_wait(&main_sem);
+    // printf("%.2f %.2f",  ptr->originalValue, ptr->modificationValue);
+    // printf("%s", "\n\r");
     // printf("%s", "\n\r");
     // printf("%.2f %.2f", (*ptrToPtr)->originalValue, (*ptrToPtr)->modificationValue);
     // (*ptrToPtr)->modificationValue = 10;
@@ -168,6 +171,7 @@ int main() {
 
     close(ptr);
     shm_unlink(SHM_NAME);
+    kill(p1, SIGTERM);
     // int r, f, i;
     // char *m;
     // f = open("/dev/mem", O_RDONLY, 0);
@@ -213,5 +217,5 @@ int main() {
     
 
 
-
+    printf("%s", "main program ending");
 }

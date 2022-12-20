@@ -18,3 +18,4 @@ struct OperationStructure* allocateShm(){
     checkForError(ptr, "Mapping memory error");
     return ptr;
 }
+
