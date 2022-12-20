@@ -76,19 +76,24 @@ void createSem(sem_t* sem, char* errorMessage, const char * semName, unsigned in
 
 
 void delete_semaphores(){
-    sem_close(main_sem);
-    sem_close(add_sem);
     sem_unlink(MAIN_SEMAPHOR);
     sem_unlink(ADD_SEMAPHOR);
 
 }
 void initSemaphors(){
-    sem_close(main_sem);
-    sem_close(add_sem);
     sem_unlink(MAIN_SEMAPHOR);
-    sem_unlink(ADD_SEMAPHOR);
-    // createSem(main_sem, "Error while creating main sem", MAIN_SEMAPHOR, 0);
-    // createSem(add_sem, "Error while creating add sem", ADD_SEMAPHOR, 1);
+	sem_unlink(ADD_SEMAPHOR);
+	main_sem = sem_open(MAIN_SEMAPHOR, O_CREAT | O_EXCL, SEMAPHOR_PERMISSIONS, INITIAL_VALUE);
+	if (main_sem == SEM_FAILED) {
+        perror("main_sem sem_open(3) error");
+        exit(1);
+    }
+    add_sem = sem_open(ADD_SEMAPHOR, O_CREAT | O_EXCL, SEMAPHOR_PERMISSIONS, INITIAL_VALUE);
+	if (add_sem == SEM_FAILED) {
+        perror("s_add sem_open(3) error");
+        exit(1);
+    }
+	printf("семафоры инициализированы!\n");	
 
 }
 
@@ -97,44 +102,51 @@ int main() {
     pid_t p1, p2, p3, p4, p5;
 
     struct OperationStructure* ptr;
-
-
-
-//    initThreads(ptrToPtr);
-    // inputValues(&a, &b, &c);
-
-    ptr = allocateShm();
-    
+    // // // inputValues(&a, &b, &c);
+    ptr = allocateShm();    
     ptr->originalValue= 0;
     ptr->modificationValue= 5;
     printf("%.2f %.2f",  ptr->originalValue, ptr->modificationValue);
     printf("%s", "\n\r");
-    
     initSemaphors();
 
 
-    main_sem = sem_open(MAIN_SEMAPHOR, O_RDWR |O_CREAT | O_EXCL, SEMAPHOR_PERMISSIONS, 1);
-    if (main_sem == SEM_FAILED){
-        perror( "Error while creating main sem");
-        exit(1);
-    }
+    p1 = fork();
+    if (p1 == 0){
+        execl(ADD_PROGRAM, ADD_PROGRAM, (char *) NULL);
 
-    add_sem = sem_open(ADD_SEMAPHOR, O_RDWR | O_CREAT | O_EXCL, SEMAPHOR_PERMISSIONS, 0);
-    if (add_sem == ADD_SEMAPHOR){
-        perror( "Error while creating add sem");
-        exit(1);
     }
+    printf("calculating...");
+    sem_post(add_sem);
+    sem_wait(main_sem);
+
+        printf("results...");
+        printf("%.2f %.2f",  ptr->originalValue, ptr->modificationValue);
+        printf("%s", "\n\r");
+    delete_semaphores();
+
+    // main_sem = sem_open(MAIN_SEMAPHOR, O_RDWR |O_CREAT | O_EXCL, SEMAPHOR_PERMISSIONS, 1);
+    // if (main_sem == SEM_FAILED){
+    //     perror( "Error while creating main sem");
+    //     exit(1);
+    // }
+
+    // add_sem = sem_open(ADD_SEMAPHOR, O_RDWR | O_CREAT | O_EXCL, SEMAPHOR_PERMISSIONS, 0);
+    // if (add_sem == ADD_SEMAPHOR){
+    //     perror( "Error while creating add sem");
+    //     exit(1);
+    // }
     // p1 = fork();
     // if (p1 == 0){
     //     execl(ADD_PROGRAM, ADD_PROGRAM, (char *) NULL);
     // }
 
-    printf("%f", p1);
-    printf("%s", "\n\r");
-    printf("%s", "posting add_sem..");
-     printf("%s", "\n\r");
-    sem_post(&add_sem);
-    printf("%s", "waiting for main_sem to release...");
+    // printf("%f", p1);
+    // printf("%s", "\n\r");
+    // printf("%s", "posting add_sem..");
+    // printf("%s", "\n\r");
+    // sem_post(&add_sem);
+    // printf("%s", "waiting for main_sem to release...");
     // sem_wait(&main_sem);
     // printf("%.2f %.2f",  ptr->originalValue, ptr->modificationValue);
     // printf("%s", "\n\r");
@@ -169,8 +181,8 @@ int main() {
     // printf("%s", test1);
 
 
-    close(ptr);
-    shm_unlink(SHM_NAME);
+    // close(ptr);
+    //shm_unlink(SHM_NAME);
     kill(p1, SIGTERM);
     // int r, f, i;
     // char *m;

@@ -15,12 +15,12 @@
 #define MAIN_PROGRAM "./main"
 
 
-#define MAIN_SEMAPHOR "/main_sem"
-#define ADD_SEMAPHOR "/addition_sem"
-#define DIVISION_SEMAPHOR "/division_sem"
-#define MULTIPLICATION_SEMAPHOR "/multiplication_sem"
-#define SUBSTRACTION_SEMAPHOR "/substraction_sem"
-#define SQUAREROOT_SEMAPHOR "/squareRoot_sem"
+#define MAIN_SEMAPHOR "/mainsem"
+#define ADD_SEMAPHOR "/additionsem"
+#define DIVISION_SEMAPHOR "/divisionsem"
+#define MULTIPLICATION_SEMAPHOR "/multiplicationsem"
+#define SUBSTRACTION_SEMAPHOR "/substractionsem"
+#define SQUAREROOT_SEMAPHOR "/squareRootsem"
 
 #define SHM_NAME "lab1_shm"
 
