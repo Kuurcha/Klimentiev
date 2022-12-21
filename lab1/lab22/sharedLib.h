@@ -22,6 +22,13 @@
 #define SUBSTRACTION_SEMAPHOR "/substractionsem"
 #define SQUAREROOT_SEMAPHOR "/squareRootsem"
 
+#define SYNC_MAIN_SEMAPHOR "/mainsemSYNC_"
+#define SYNC_ADD_SEMAPHOR "/additionsemSYNC_"
+#define SYNC_DIVISION_SEMAPHOR "/divisionsemSYNC_"
+#define SYNC_MULTIPLICATION_SEMAPHOR "/multiplicationsemSYNC_"
+#define SYNC_SUBSTRACTION_SEMAPHOR "/substractionsemSYNC_"
+#define SYNC_SQUAREROOT_SEMAPHOR "/squareRootsemSYNC_"
+
 #define SHM_NAME "lab1_shm"
 
 #include <stdio.h>

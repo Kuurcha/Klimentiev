@@ -16,43 +16,84 @@ sem_t *main_sem;
 sem_t *div_sem;
 sem_t *sub_sem;
 sem_t *sqrt_sem;
-pthread_t mult_thread, div_thread, add_thread, sub_thread, sqrt_thread;
+
+
+sem_t *sync_mult_sem;
+sem_t *sync_add_sem;
+sem_t *sync_main_sem;
+sem_t *sync_div_sem;
+sem_t *sync_sub_sem;
+sem_t *sync_sqrt_sem;
+
+struct OperationStructure* ptr;
 double a = 3;
 double b = 6;
 double c = 9;
 
 
-void* lab_sub(struct OperationStructure** ptr){
-    while (1){
-        sem_wait(&sub_sem);
-        (*ptr)->originalValue -=(*ptr)->modificationValue;
-        sem_post(&main_sem);
-    }
+void printValues(){
+    printf("%.2f",  ptr->originalValue);
+    printf("%s", "\n\r");
+}
+void lab_sub(double argument){
+        printf("%s", "\n\r");
+        printf("%s", "substracting: ");
+        printf("%f", argument);
+        printf("%s", "\n\r");
+        ptr->modificationValue = argument;
+        sem_post(sub_sem);
+        sem_wait(main_sem);
+        printf("%s", "Result: "); 
+        printValues();
+        printf("%s", "\n\r");
+}
+void lab_add(double argument){
+        printf("%s", "\n\r");
+        printf("%s", "addition: ");
+        printf("%f", argument);
+        printf("%s", "\n\r");
+        ptr->modificationValue = argument;
+        sem_post(add_sem);
+        sem_wait(main_sem);
+        printf("%s", "Result: "); 
+        printValues();
+        printf("%s", "\n\r");
+}
+void lab_mult(double argument){
+        printf("%s", "\n\r");
+        printf("%s", "multiplication: ");
+        printf("%f", argument);
+        printf("%s", "\n\r");
+        ptr->modificationValue = argument;
+        sem_post(mult_sem);
+        sem_wait(main_sem);
+        printf("%s", "Result: ");
+        printValues();
+        printf("%s", "\n\r");
+}
+void lab_div(double argument){
+        printf("%s", "\n\r");
+        printf("%s", "division: ");
+        printf("%f", argument);
+        ptr->modificationValue = argument;
+        sem_post(div_sem);
+        sem_wait(main_sem);
+        printf("%s", "Result: ");
+        printValues();
+        printf("%s", "\n\r");
+}
+void lab_sqrt(){
+        printf("%s", "\n\r");
+        printf("%s", "sqaureRooting: ");
+        printf("%s", "\n\r");
+        sem_post(sqrt_sem);
+        sem_wait(main_sem);
+        printf("%s", "Result: "); 
+        printValues();
+        printf("%s", "\n\r");
 }
 
-void* lab_mult(struct OperationStructure** ptr){
-    while (1){
-        sem_wait(&mult_sem);
-        (*ptr)->originalValue *=(*ptr)->modificationValue;
-        sem_post(&main_sem);
-    }
-}
 
-void* lab_div(struct OperationStructure** ptr){
-    while (1){
-        sem_wait(&div_sem);
-        (*ptr)->originalValue /=(*ptr)->modificationValue;
-        sem_post(&main_sem);
-    }
-}
-
-void* lab_sqrt(struct OperationStructure** ptr){
-    while (1){
-        sem_wait(&sqrt_sem);
-        (*ptr)->originalValue /=(*ptr)->modificationValue;
-        sem_post(&main_sem);
-    }
-}
 
 int inputValues (double *a, double *b, double *c){
     printf("Input a: \n");
@@ -66,168 +107,164 @@ int inputValues (double *a, double *b, double *c){
     printf(" Коеф3: %f", c);
 }
 
-void createSem(sem_t* sem, char* errorMessage, const char * semName, unsigned int initialValue){
-    sem = sem_open(semName, O_CREAT | O_EXCL, SEMAPHOR_PERMISSIONS, initialValue);
-    if (sem == SEM_FAILED){
+sem_t* createSem(char* errorMessage, const char * semName, unsigned int initialValue){
+    sem_t* temp = sem_open(semName, O_CREAT | O_EXCL, SEMAPHOR_PERMISSIONS, initialValue);
+    if (temp == SEM_FAILED){
         perror(errorMessage);
         exit(1);
     }
+    return temp;
 }
 
-
+double popValue(){
+    double value = ptr->originalValue;
+    ptr->originalValue = 0;
+    ptr->modificationValue = 0;
+    return value;
+}
 void delete_semaphores(){
     sem_unlink(MAIN_SEMAPHOR);
-    sem_unlink(ADD_SEMAPHOR);
+	sem_unlink(ADD_SEMAPHOR);
+    sem_unlink(SUBSTRACTION_SEMAPHOR);
+    sem_unlink(DIVISION_SEMAPHOR);
+    sem_unlink(MULTIPLICATION_SEMAPHOR);
+    sem_unlink(SQUAREROOT_SEMAPHOR);
+
+    sem_unlink(SYNC_MAIN_SEMAPHOR);
+	sem_unlink(SYNC_ADD_SEMAPHOR);
+    sem_unlink(SYNC_SUBSTRACTION_SEMAPHOR);
+    sem_unlink(SYNC_DIVISION_SEMAPHOR);
+    sem_unlink(SYNC_MULTIPLICATION_SEMAPHOR);
+    sem_unlink(SYNC_SQUAREROOT_SEMAPHOR);
+
 
 }
 void initSemaphors(){
-    sem_unlink(MAIN_SEMAPHOR);
-	sem_unlink(ADD_SEMAPHOR);
-	main_sem = sem_open(MAIN_SEMAPHOR, O_CREAT | O_EXCL, SEMAPHOR_PERMISSIONS, INITIAL_VALUE);
-	if (main_sem == SEM_FAILED) {
-        perror("main_sem sem_open(3) error");
-        exit(1);
-    }
-    add_sem = sem_open(ADD_SEMAPHOR, O_CREAT | O_EXCL, SEMAPHOR_PERMISSIONS, INITIAL_VALUE);
-	if (add_sem == SEM_FAILED) {
-        perror("s_add sem_open(3) error");
-        exit(1);
-    }
+    delete_semaphores();
+    main_sem = createSem("main_sem sem_open error", MAIN_SEMAPHOR, INITIAL_VALUE);
+    add_sem = createSem("add_sem sem_open error", ADD_SEMAPHOR, INITIAL_VALUE);
+    sub_sem = createSem("sub_sem sem_open error", SUBSTRACTION_SEMAPHOR, INITIAL_VALUE);
+    div_sem = createSem("div_sem sem_open error", DIVISION_SEMAPHOR, INITIAL_VALUE);
+    mult_sem = createSem("mult_sem sem_open error", MULTIPLICATION_SEMAPHOR, INITIAL_VALUE);
+    sqrt_sem = createSem("sqrt_sem sem_open error", SQUAREROOT_SEMAPHOR, INITIAL_VALUE);
+
+    sync_main_sem = createSem("sync_main_sem sem_open error", SYNC_MAIN_SEMAPHOR, INITIAL_VALUE);
+    sync_add_sem = createSem("sync_add_sem sem_open error", SYNC_ADD_SEMAPHOR, INITIAL_VALUE);
+    sync_sub_sem = createSem("sync_sub_sem sem_open error", SYNC_SUBSTRACTION_SEMAPHOR, INITIAL_VALUE);
+    sync_div_sem = createSem("sync_div_sem sem_open error", SYNC_DIVISION_SEMAPHOR, INITIAL_VALUE);
+    sync_mult_sem = createSem("sync_mult_sem sem_open error", SYNC_MULTIPLICATION_SEMAPHOR, INITIAL_VALUE);
+    sync_sqrt_sem = createSem("sync_sqrt_sem sem_open error", SYNC_SQUAREROOT_SEMAPHOR, INITIAL_VALUE);
+
 	printf("семафоры инициализированы!\n");	
 
 }
 
 
-int main() {
-    pid_t p1, p2, p3, p4, p5;
+double Discriminant(){
+    double d = 0;
+    lab_add(1);
+    lab_mult(b);
+    lab_mult(b);
+    double firstComponent = popValue();
 
-    struct OperationStructure* ptr;
+    lab_add(4);
+    lab_mult(a);
+    lab_mult(c);
+
+    double secondComponent = popValue();
+    d = firstComponent + secondComponent;
+    return d;
+}
+
+void switchToOtherProgram(pid_t returnPid, char * path){
+   
+    printf("%s", "\n\r");
+    if (returnPid == 0){
+        printf("%s", "Process ");
+        printf("%s", path);
+        printf("%s", " Switched ");
+        execv(path, (char *) NULL);
+    }
+    else if(returnPid < 0){
+        printf("%s","Critical mistakes when creating PID");
+    }
+    else{
+        printf("%s", "Main");
+    }
+    
+    printf("%s", "\n\r");
+}
+
+pid_t forkDebug(char * path){
+    printf("%s", "\n\r");
+    int returnPid = fork();
+    printf("%s", "Creating process: ");
+    printf("%s", path);
+    printf("%s", "\n\r");
+    printf("%s", "Pid value:");
+    printf("%f", returnPid);
+    printf("%s", "\n\r");
+    return returnPid;
+}
+int main() {
+    pid_t p1 = -1, p2 = -1, p3 = -1, p4 = -1, p5 = -1;
+    //x1 = -b +- sqrt(D)/2a
+    //D = b^2 - 4ac
+    
     // // // inputValues(&a, &b, &c);
     ptr = allocateShm();    
     ptr->originalValue= 0;
-    ptr->modificationValue= 5;
-    printf("%.2f %.2f",  ptr->originalValue, ptr->modificationValue);
-    printf("%s", "\n\r");
-    initSemaphors();
-
-
-    p1 = fork();
-    if (p1 == 0){
-        execl(ADD_PROGRAM, ADD_PROGRAM, (char *) NULL);
-
-    }
-    printf("calculating...");
-    sem_post(add_sem);
-    sem_wait(main_sem);
-
-        printf("results...");
-        printf("%.2f %.2f",  ptr->originalValue, ptr->modificationValue);
-        printf("%s", "\n\r");
-    delete_semaphores();
-
-    // main_sem = sem_open(MAIN_SEMAPHOR, O_RDWR |O_CREAT | O_EXCL, SEMAPHOR_PERMISSIONS, 1);
-    // if (main_sem == SEM_FAILED){
-    //     perror( "Error while creating main sem");
-    //     exit(1);
-    // }
-
-    // add_sem = sem_open(ADD_SEMAPHOR, O_RDWR | O_CREAT | O_EXCL, SEMAPHOR_PERMISSIONS, 0);
-    // if (add_sem == ADD_SEMAPHOR){
-    //     perror( "Error while creating add sem");
-    //     exit(1);
-    // }
-    // p1 = fork();
-    // if (p1 == 0){
-    //     execl(ADD_PROGRAM, ADD_PROGRAM, (char *) NULL);
-    // }
-
-    // printf("%f", p1);
-    // printf("%s", "\n\r");
-    // printf("%s", "posting add_sem..");
-    // printf("%s", "\n\r");
-    // sem_post(&add_sem);
-    // printf("%s", "waiting for main_sem to release...");
-    // sem_wait(&main_sem);
+    ptr->modificationValue = 0;
     // printf("%.2f %.2f",  ptr->originalValue, ptr->modificationValue);
     // printf("%s", "\n\r");
-    // printf("%s", "\n\r");
-    // printf("%.2f %.2f", (*ptrToPtr)->originalValue, (*ptrToPtr)->modificationValue);
-    // (*ptrToPtr)->modificationValue = 10;
-    // sem_post(&sub_sem);
-    // sem_wait(&main_sem);
-    // printf("%s", "\n\r");
-    // printf("%.2f %.2f", (*ptrToPtr)->originalValue, (*ptrToPtr)->modificationValue);
-    // printf("%s", "\n\r");
+    initSemaphors();
 
-    // printf("%s", "\n\r");
-
-
-    // sprintf(ptr,"%9.6f", os.modificationValdue);
-
-    // printf("%s", "\n\r");
-    // printf("%p\n", (void *) ptr);
-    // printf("%f", ptr);
-    // printf("%s", "\n\r");
-    // ptr -= sizeof(os.modificationValue);
-    // printf("%p\n", (void *) ptr);
-    // printf("%s", test);
     
-    // char* name1 = "lab2_shm\n\r";
-    
-    // sprintf(ptr, "%s", name1);
+    p1 = forkDebug(ADD_PROGRAM);
+    switchToOtherProgram(p1, ADD_PROGRAM);
+    sem_wait(main_sem);
+    p2 = forkDebug(MULTIPLICATION_PROGRAM);
+    switchToOtherProgram(p2, MULTIPLICATION_PROGRAM);
+    sem_wait(main_sem);
 
-    // char* test1 = (char*)ptr;
+    p3 = forkDebug(SUBSTRACTION_PROGRAM);
+    switchToOtherProgram(p3, SUBSTRACTION_PROGRAM);
+    sem_wait(main_sem);
 
-    // printf("%s", test1);
+    p4 = forkDebug(MULTIPLICATION_PROGRAM);
+    switchToOtherProgram(p4, MULTIPLICATION_PROGRAM);
+    sem_wait(main_sem);
+    p5 = forkDebug(MULTIPLICATION_PROGRAM);
+    switchToOtherProgram(p5, MULTIPLICATION_PROGRAM);
+    sem_wait(main_sem);
 
+    double result = Discriminant();
 
-    // close(ptr);
-    //shm_unlink(SHM_NAME);
+    printf("%s", "Discremenant is: ");
+    printf("%f", result);
+    // lab_add(66);
+    // lab_mult(66);
+    // lab_sub(1000);
+    // lab_sub(1);
+    // lab_sqrt();
+    // lab_div(2);
+    // if(p1 && p2 && p3 && p4 && p5){
+    //     printf("%s", "test");
+    //     lab_add(1);
+        
+    // }
+         
+
+    close(ptr);
+    shm_unlink(SHM_NAME);
     kill(p1, SIGTERM);
-    // int r, f, i;
-    // char *m;
-    // f = open("/dev/mem", O_RDONLY, 0);
-    // m = (char *) mmap( 0, 0xFFFFF, PROT_READ, MAP_SHARED, f, 0);
-    // for (i=0xFFFF5;i<0xFFFFD;i++) write(1, &m[i], 1);
-    // munmap( m, 0xFFFFF);
-    // close(f);
-
-    
-    //ключ для ядра объекта операционной системы
-    // key_t kernelKey = ftok(".", 0);
-    // if (kernelKey == -1){
-    //     perror("Kernel allocation error");
-    //     exit(1);
-    // }
-
-    // Создаем общую область памяти
-    // int shmid = shmget(kernelKey, SHSIZE, READWRITE_PERMISSION | IPC_CREAT );
-    // if (shmid == -1){
-    //     perror("memory creation error");
-    //     exit(1);
-    // }
-    // char *shmPointer;
-    // shmPointer = shmat(shmid, NULL, 0);
-    // memcpy(shmPointer, "Hello", 5);
-
-    // printf("Child wrote: %s\n", shmPointer);
-
-    //создаем набор семафора
-    // int semId = semget(kernelKey, 1, READWRITE_PERMISSION | IPC_CREAT | IPC_EXCL);
-
-    // if (semId != -1){
-       
-    //     exit(1);
-    // }
-    // else{
-    //     perror("semget creation error");
-    //     exit(1);
-    // }
-
-
-
-    
-
-
+    kill(p2, SIGTERM);
+    kill(p3, SIGTERM);
+    kill(p4, SIGTERM);
+    kill(p5, SIGTERM);
+    printf("%s", "\n\r");
     printf("%s", "main program ending");
+    printf("%s", "\n\r");
+    exit(0);
+  
 }
