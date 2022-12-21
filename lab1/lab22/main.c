@@ -7,6 +7,7 @@
 #include "sharedLib.h"
 
 #include <pthread.h>
+#include <stdbool.h>
 //Константы и структура для операций и с общими библиотеками
 
 
@@ -16,14 +17,6 @@ sem_t *main_sem;
 sem_t *div_sem;
 sem_t *sub_sem;
 sem_t *sqrt_sem;
-
-
-sem_t *sync_mult_sem;
-sem_t *sync_add_sem;
-sem_t *sync_main_sem;
-sem_t *sync_div_sem;
-sem_t *sync_sub_sem;
-sem_t *sync_sqrt_sem;
 
 struct OperationStructure* ptr;
 double a = 3;
@@ -78,6 +71,7 @@ void lab_div(double argument){
         ptr->modificationValue = argument;
         sem_post(div_sem);
         sem_wait(main_sem);
+        printf("%s", "\n\r");
         printf("%s", "Result: ");
         printValues();
         printf("%s", "\n\r");
@@ -101,6 +95,7 @@ int inputValues (double *a, double *b, double *c){
     printf("Input b: \n");
     scanf("%lf", b);
     printf("Input c: \n");
+    scanf("%lf", c);
 
     printf(" Коеф1: %f", a);
     printf(" Коеф2: %f", b);
@@ -130,14 +125,6 @@ void delete_semaphores(){
     sem_unlink(MULTIPLICATION_SEMAPHOR);
     sem_unlink(SQUAREROOT_SEMAPHOR);
 
-    sem_unlink(SYNC_MAIN_SEMAPHOR);
-	sem_unlink(SYNC_ADD_SEMAPHOR);
-    sem_unlink(SYNC_SUBSTRACTION_SEMAPHOR);
-    sem_unlink(SYNC_DIVISION_SEMAPHOR);
-    sem_unlink(SYNC_MULTIPLICATION_SEMAPHOR);
-    sem_unlink(SYNC_SQUAREROOT_SEMAPHOR);
-
-
 }
 void initSemaphors(){
     delete_semaphores();
@@ -147,13 +134,6 @@ void initSemaphors(){
     div_sem = createSem("div_sem sem_open error", DIVISION_SEMAPHOR, INITIAL_VALUE);
     mult_sem = createSem("mult_sem sem_open error", MULTIPLICATION_SEMAPHOR, INITIAL_VALUE);
     sqrt_sem = createSem("sqrt_sem sem_open error", SQUAREROOT_SEMAPHOR, INITIAL_VALUE);
-
-    sync_main_sem = createSem("sync_main_sem sem_open error", SYNC_MAIN_SEMAPHOR, INITIAL_VALUE);
-    sync_add_sem = createSem("sync_add_sem sem_open error", SYNC_ADD_SEMAPHOR, INITIAL_VALUE);
-    sync_sub_sem = createSem("sync_sub_sem sem_open error", SYNC_SUBSTRACTION_SEMAPHOR, INITIAL_VALUE);
-    sync_div_sem = createSem("sync_div_sem sem_open error", SYNC_DIVISION_SEMAPHOR, INITIAL_VALUE);
-    sync_mult_sem = createSem("sync_mult_sem sem_open error", SYNC_MULTIPLICATION_SEMAPHOR, INITIAL_VALUE);
-    sync_sqrt_sem = createSem("sync_sqrt_sem sem_open error", SYNC_SQUAREROOT_SEMAPHOR, INITIAL_VALUE);
 
 	printf("семафоры инициализированы!\n");	
 
@@ -172,8 +152,39 @@ double Discriminant(){
     lab_mult(c);
 
     double secondComponent = popValue();
-    d = firstComponent + secondComponent;
+    d = firstComponent - secondComponent;
     return d;
+}
+
+double calculateRoot(bool substract, double discrimenant){
+    double x = 0;
+    
+
+
+    lab_add(discrimenant);
+    lab_sqrt();
+    
+    double sqrtD = popValue();
+    lab_sub(b);
+    if (substract){
+        lab_sub(sqrtD);  
+    }
+    else{
+        
+        lab_add(sqrtD);
+    }
+
+    double dividend = popValue();
+
+    lab_add(a);
+    lab_mult(2);
+    double divisor = popValue();
+    lab_add(dividend);
+    lab_div(divisor);
+
+    double result = popValue();
+    return result;
+
 }
 
 void switchToOtherProgram(pid_t returnPid, char * path){
@@ -211,12 +222,10 @@ int main() {
     //x1 = -b +- sqrt(D)/2a
     //D = b^2 - 4ac
     
-    // // // inputValues(&a, &b, &c);
+    inputValues(&a, &b, &c);
     ptr = allocateShm();    
     ptr->originalValue= 0;
     ptr->modificationValue = 0;
-    // printf("%.2f %.2f",  ptr->originalValue, ptr->modificationValue);
-    // printf("%s", "\n\r");
     initSemaphors();
 
     
@@ -231,29 +240,39 @@ int main() {
     switchToOtherProgram(p3, SUBSTRACTION_PROGRAM);
     sem_wait(main_sem);
 
-    p4 = forkDebug(MULTIPLICATION_PROGRAM);
-    switchToOtherProgram(p4, MULTIPLICATION_PROGRAM);
-    sem_wait(main_sem);
-    p5 = forkDebug(MULTIPLICATION_PROGRAM);
-    switchToOtherProgram(p5, MULTIPLICATION_PROGRAM);
+    p4 = forkDebug(DIVISION_PROGRAM);
+    switchToOtherProgram(p4, DIVISION_PROGRAM);
     sem_wait(main_sem);
 
-    double result = Discriminant();
+    p5 = forkDebug(SQUAREROOT_PROGRAM);
+    switchToOtherProgram(p5, SQUAREROOT_PROGRAM);
+    sem_wait(main_sem);
 
+    double discriminant = Discriminant();
     printf("%s", "Discremenant is: ");
-    printf("%f", result);
-    // lab_add(66);
-    // lab_mult(66);
-    // lab_sub(1000);
-    // lab_sub(1);
-    // lab_sqrt();
-    // lab_div(2);
-    // if(p1 && p2 && p3 && p4 && p5){
-    //     printf("%s", "test");
-    //     lab_add(1);
-        
-    // }
-         
+    printf("%f", discriminant);
+    printf("%s", "\n\r");
+    if (discriminant < 0){
+        printf("%s", "No solutions!");
+    }
+    else {
+        double firstRoot = calculateRoot(true, discriminant);
+        double secondRoot = calculateRoot(false, discriminant);
+        if (discriminant == 0){
+            printf("%s", "One solution: ");
+            printf("%f", firstRoot < secondRoot? secondRoot: firstRoot);
+        }
+        else{
+           printf("%s", "Two solutions: ");
+           printf("%s", "\n\r");
+           printf("%s", "x1: ");
+           printf("%f", firstRoot);
+           printf("%s", "\n\r");
+           printf("%s", "x2: ");
+           printf("%f", secondRoot);
+        }
+    }
+   
 
     close(ptr);
     shm_unlink(SHM_NAME);

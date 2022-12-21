@@ -8,7 +8,7 @@ substraction:
 multiplication:
 	gcc multiplication.c sharedLib.c -o multiplication
 division:
-	gcc multiplication.c sharedLib.c -o division
+	gcc division.c sharedLib.c -o division
 squareRoot: 
 	gcc squareRoot.c sharedLib.c -o squareRoot -lm
 clean: 

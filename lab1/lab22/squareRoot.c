@@ -8,7 +8,6 @@ int main() {
     sem_post(main_sem);
     while(1){
         sem_wait(sqrt_sem);
-        ptr->modificationValue = 0;
         ptr->originalValue = sqrt(ptr->originalValue);
         sem_post(main_sem);
     }
