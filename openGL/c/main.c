@@ -1,7 +1,7 @@
 #include <GL/gl.h> 
 #include <GL/glu.h>
 #include <GL/glut.h>
-#define SCREENSIZE 620
+#define SCREENSIZE 700
 void reshape(int w, int h) 
 {
     glViewport (0, 0, (GLsizei) w, (GLsizei) h); 
@@ -243,8 +243,9 @@ void main (int argc, char** argv) {
     glutInit (&argc, argv);
     glutReshapeFunc(reshape);
     glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-    glutInitWindowPosition (50, 50); 
-    glutInitWindowSize (620, 620);
+    glutInitWindowSize (SCREENSIZE, SCREENSIZE);
+    glutInitWindowPosition (250, 50); 
+
     glutCreateWindow ("stork with a child");
 
     glViewport (0, 0, (GLsizei) SCREENSIZE, (GLsizei) SCREENSIZE); 
