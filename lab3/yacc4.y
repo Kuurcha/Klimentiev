@@ -35,13 +35,26 @@ int main(int argn, char **argv)
 %%
         start: 
                 | SIGN beforeMantisa
-                | NUMBER {
-                        printf("ok!");
-                        return 0;
-                }
+                | NUMBER mantisaSeparator
         beforeMantisa:
-                | NUMBER {
-                        printf("ok!");
-                        return 0;
-                }
+                | NUMBER mantisaSeparator
+        mantisaSeparator:
+                | SEPARATOR firstNumberAfterMantisa
+        firstNumberAfterMantisa: 
+                | NUMBER repeatingNumber 
+        repeatingNumber:
+                | NUMBER repeatingNumber
+                | EXP exponent
+        exponent:
+                |SIGN firstNumberAfterMantisa
+                |NUMBER mantisaNumberRepeat 
+        firstNumberAfterMantisa:
+                |NUMBER mantisaNumberRepeat
+        mantisaNumberRepeat:
+                |NUMBER mantisaNumberRepeat
+                |ENTER{
+                      printf("Number is correct!");
+                      printf("\n");
+                      return 0;  
+                };
 %%
