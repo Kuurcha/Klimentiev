@@ -37,9 +37,11 @@ int main(int argn, char **argv)
                 | SIGN beforeMantisa
                 | NUMBER {
                         printf("ok!");
+                        return 0;
                 }
         beforeMantisa:
                 | NUMBER {
                         printf("ok!");
+                        return 0;
                 }
 %%

@@ -579,7 +579,7 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int8 yyrline[] =
 {
-       0,    36,    36,    37,    38,    41,    42
+       0,    36,    36,    37,    38,    42,    43
 };
 #endif
 
@@ -1139,20 +1139,22 @@ yyreduce:
 #line 38 "yacc4.y"
                          {
                         printf("ok!");
+                        return 0;
                 }
-#line 1144 "y.tab.c"
+#line 1145 "y.tab.c"
     break;
 
   case 6: /* beforeMantisa: NUMBER  */
-#line 42 "yacc4.y"
+#line 43 "yacc4.y"
                          {
                         printf("ok!");
+                        return 0;
                 }
-#line 1152 "y.tab.c"
+#line 1154 "y.tab.c"
     break;
 
 
-#line 1156 "y.tab.c"
+#line 1158 "y.tab.c"
 
       default: break;
     }
@@ -1345,5 +1347,5 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 45 "yacc4.y"
+#line 47 "yacc4.y"
 
