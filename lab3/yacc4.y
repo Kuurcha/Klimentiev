@@ -1,7 +1,10 @@
 %{
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+#include <stdarg.h> 
 
+int yylex();
 int yywrap(){ return 1; }
 #define input_str argv[1]
 
@@ -30,31 +33,41 @@ int main(int argn, char **argv)
 }
 
 %}
-%start start
-%token SIGN NUMBER SEPARATOR EXP ENTER
+%start startLabel
+
+%union {
+ int iValue; /* integer value */
+ char sIndex; /* symbol table index */
+}; 
+
+%token <sIndex> SEPARATOR EXP ENTER INVALIDEXPONENT
+%token <iValue> NUMBER SIGNEDNUMBER
 %%
-        start: 
-                | SIGN beforeMantisa
-                | NUMBER mantisaSeparator
-        beforeMantisa:
-                | NUMBER mantisaSeparator
-        mantisaSeparator:
-                | SEPARATOR firstNumberAfterMantisa
-        firstNumberAfterMantisa: 
-                | NUMBER repeatingNumber 
-        repeatingNumber:
-                | NUMBER repeatingNumber
-                | EXP exponent
-        exponent:
-                |SIGN firstNumberAfterMantisa
-                |NUMBER mantisaNumberRepeat 
-        firstNumberAfterMantisa:
-                |NUMBER mantisaNumberRepeat
-        mantisaNumberRepeat:
-                |NUMBER mantisaNumberRepeat
-                |ENTER{
+
+        startLabel:
+                expr ENTER{
                       printf("Number is correct!");
                       printf("\n");
-                      return 0;  
-                };
+                      return 1;
+                } 
+                ; 
+        expr: 
+                mantisa EXP exponent
+                ;
+        mantisa: 
+                SIGNEDNUMBER SEPARATOR repeatingNumber
+                | NUMBER SEPARATOR repeatingNumber
+                
+        repeatingNumber: 
+                repeatingNumber NUMBER
+                |NUMBER 
+                ;
+        exponent:
+                | SIGNEDNUMBER repeatingNumber
+                | repeatingNumber
+                | SIGNEDNUMBER 
+                ;
+
+       
+ 
 %%

@@ -4,12 +4,12 @@
 %}
 
 %%
-[\+|-]        { 
-                yylval=atoi(yytext); 
-                return SIGN; 
+[\+-][0-9]        { 
+                  yylval.iValue=atoi(yytext);
+                return SIGNEDNUMBER; 
               }
 [0-9]         { 
-                yylval=atoi(yytext); 
+                yylval.iValue=atoi(yytext); 
                 return NUMBER; 
               }
 [.,]          {
@@ -21,6 +21,11 @@
 [\n]          {
                 return ENTER;
               }
+[^Ee]         {
+                return INVALIDEXPONENT;
+              }
+
 %%
+
 
 

@@ -54,11 +54,12 @@ extern int yydebug;
     YYEOF = 0,                     /* "end of file"  */
     YYerror = 256,                 /* error  */
     YYUNDEF = 257,                 /* "invalid token"  */
-    SIGN = 258,                    /* SIGN  */
-    NUMBER = 259,                  /* NUMBER  */
-    SEPARATOR = 260,               /* SEPARATOR  */
-    EXP = 261,                     /* EXP  */
-    ENTER = 262                    /* ENTER  */
+    SEPARATOR = 258,               /* SEPARATOR  */
+    EXP = 259,                     /* EXP  */
+    ENTER = 260,                   /* ENTER  */
+    INVALIDEXPONENT = 261,         /* INVALIDEXPONENT  */
+    NUMBER = 262,                  /* NUMBER  */
+    SIGNEDNUMBER = 263             /* SIGNEDNUMBER  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -67,15 +68,26 @@ extern int yydebug;
 #define YYEOF 0
 #define YYerror 256
 #define YYUNDEF 257
-#define SIGN 258
-#define NUMBER 259
-#define SEPARATOR 260
-#define EXP 261
-#define ENTER 262
+#define SEPARATOR 258
+#define EXP 259
+#define ENTER 260
+#define INVALIDEXPONENT 261
+#define NUMBER 262
+#define SIGNEDNUMBER 263
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-typedef int YYSTYPE;
+union YYSTYPE
+{
+#line 38 "yacc4.y"
+
+ int iValue; /* integer value */
+ char sIndex; /* symbol table index */
+
+#line 88 "y.tab.h"
+
+};
+typedef union YYSTYPE YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
 #endif
