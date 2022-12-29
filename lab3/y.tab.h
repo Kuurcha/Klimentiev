@@ -79,12 +79,13 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 38 "yacc4.y"
+#line 39 "yacc4.y"
 
  int iValue; /* integer value */
  char sIndex; /* symbol table index */
+ float fValue;
 
-#line 88 "y.tab.h"
+#line 89 "y.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

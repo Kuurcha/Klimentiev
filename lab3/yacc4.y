@@ -15,15 +15,16 @@ void yyerror(const char *str)
         
 }
 
-int calculateExponentValue(int i){
-        int res = 0;
-        while(i>0)
-        {
-                res = res*10+i%10;
-                i /= 10;
-        }
-        return res;
+float calculateMantisaValue(int value){
+       
+        float mantisaValue = value;
+        while(mantisaValue>1)
+                mantisaValue=mantisaValue/10;
+        return mantisaValue;
 } 
+float calculateExponentValue(int value){
+
+}
 
 int main(int argn, char **argv)
 {
@@ -38,34 +39,58 @@ int main(int argn, char **argv)
 %union {
  int iValue; /* integer value */
  char sIndex; /* symbol table index */
+ float fValue;
 }; 
 
-%token <sIndex> SEPARATOR EXP ENTER INVALIDEXPONENT
+%token SEPARATOR EXP ENTER INVALIDEXPONENT
 %token <iValue> NUMBER SIGNEDNUMBER
+%type <fValue> mantisa
+%type <iValue> repeatingNumber, exponentNumber, exponent
 %%
 
         startLabel:
-                expr ENTER{
+                mantisa exponent ENTER{
                       printf("Number is correct!");
+                      printf("\nMantisa value: %f\n", $1);
                       printf("\n");
                       return 1;
+                      
+                      
                 } 
                 ; 
-        expr: 
-                mantisa EXP exponent
+        exponent:
+                EXP exponentNumber
                 ;
         mantisa: 
-                SIGNEDNUMBER SEPARATOR repeatingNumber
-                | NUMBER SEPARATOR repeatingNumber
+                SIGNEDNUMBER SEPARATOR repeatingNumber{
+                        float firstNum = $1;
+                        double secondNum = calculateMantisaValue($3);
+                        $$ = firstNum > 0? firstNum + secondNum: firstNum - secondNum;
+                }
+                | NUMBER SEPARATOR repeatingNumber{
+                        float firstNum = $1;
+                        double secondNum = calculateMantisaValue($3);
+                        $$ = firstNum +  secondNum;
+                }
                 
         repeatingNumber: 
                 repeatingNumber NUMBER
-                |NUMBER 
+                {
+                        int repeatingNumberValue = $1*10 + $2;
+                        $$ = repeatingNumberValue;
+                }
+                |NUMBER{
+                        $$ = $1;
+                }
                 ;
-        exponent:
-                | SIGNEDNUMBER repeatingNumber
+        exponentNumber:
+                | SIGNEDNUMBER repeatingNumber{
+                        $$ = $1;
+                }
                 | repeatingNumber
-                | SIGNEDNUMBER 
+                | SIGNEDNUMBER {
+                        $$ = $1;
+                }
                 ;
 
        
