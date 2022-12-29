@@ -1,8 +1,10 @@
 %{
 #include <stdio.h>
+#include <math.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h> 
+
 
 int yylex();
 int yywrap(){ return 1; }
@@ -22,8 +24,18 @@ float calculateMantisaValue(int value){
                 mantisaValue=mantisaValue/10;
         return mantisaValue;
 } 
-float calculateExponentValue(int value){
 
+
+float calculateExponentValue(int signedValue, int unsignedValue){
+        int countDigits = 1;
+        int unsignedValueBackup = unsignedValue;
+        while (unsignedValueBackup > 10){
+                countDigits++;
+                unsignedValueBackup = unsignedValueBackup/10;
+                printf("digits %i\n", countDigits);
+        }
+        signedValue=signedValue* pow(10,countDigits);
+        return signedValue > 0? signedValue + unsignedValue: signedValue - unsignedValue;
 }
 
 int main(int argn, char **argv)
@@ -38,37 +50,40 @@ int main(int argn, char **argv)
 
 %union {
  int iValue; /* integer value */
- char sIndex; /* symbol table index */
+ const char * sIndex; /* symbol table index */
  float fValue;
 }; 
 
 %token SEPARATOR EXP ENTER INVALIDEXPONENT
 %token <iValue> NUMBER SIGNEDNUMBER
 %type <fValue> mantisa
-%type <iValue> repeatingNumber, exponentNumber, exponent
+%type <iValue> repeatingNumber exponentNumber exponent
 %%
 
         startLabel:
                 mantisa exponent ENTER{
                       printf("Number is correct!");
-                      printf("\nMantisa value: %f\n", $1);
+                      float mantisaValue = $1;
+                      float exponentValue = $2;
+                      printf("\nMantisa value: %f\n",  mantisaValue);
+                      printf("\nExponent value: %f\n", exponentValue);
                       printf("\n");
-                      return 1;
-                      
-                      
+                      return 1;   
                 } 
                 ; 
         exponent:
-                EXP exponentNumber
+                EXP exponentNumber{
+                        $$ = $2;
+                }
                 ;
         mantisa: 
                 SIGNEDNUMBER SEPARATOR repeatingNumber{
-                        float firstNum = $1;
+                        float firstNum = atoi($<sIndex>1);
                         double secondNum = calculateMantisaValue($3);
                         $$ = firstNum > 0? firstNum + secondNum: firstNum - secondNum;
                 }
                 | NUMBER SEPARATOR repeatingNumber{
-                        float firstNum = $1;
+                        float firstNum = atoi($<sIndex>1);
                         double secondNum = calculateMantisaValue($3);
                         $$ = firstNum +  secondNum;
                 }
@@ -76,20 +91,25 @@ int main(int argn, char **argv)
         repeatingNumber: 
                 repeatingNumber NUMBER
                 {
-                        int repeatingNumberValue = $1*10 + $2;
+                        
+                        int repeatingNumberValue = $1*10 + atoi($<sIndex>2);
                         $$ = repeatingNumberValue;
                 }
                 |NUMBER{
-                        $$ = $1;
+                        $$ = atoi($<sIndex>1);
                 }
                 ;
         exponentNumber:
-                | SIGNEDNUMBER repeatingNumber{
-                        $$ = $1;
+                SIGNEDNUMBER repeatingNumber{
+                        $$ = atoi($<sIndex>1);
                 }
                 | repeatingNumber
-                | SIGNEDNUMBER {
+                {
                         $$ = $1;
+                }
+                | SIGNEDNUMBER {
+                        int num = atoi($<sIndex>1);
+                        $$ = num;
                 }
                 ;
 

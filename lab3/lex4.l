@@ -1,15 +1,18 @@
 %{
 #include <stdio.h>
 #include "y.tab.h"
+#include <stdarg.h> 
 %}
 
 %%
+
+
 [\+-][0-9]        { 
-                  yylval.iValue=atoi(yytext);
+                  yylval.sIndex=yytext; 
                 return SIGNEDNUMBER; 
               }
-[0-9]         { 
-                yylval.iValue=atoi(yytext); 
+[0-9]         {
+                yylval.sIndex=yytext; 
                 return NUMBER; 
               }
 [.,]          {

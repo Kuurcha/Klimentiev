@@ -70,9 +70,11 @@
 #line 1 "yacc4.y"
 
 #include <stdio.h>
+#include <math.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h> 
+
 
 int yylex();
 int yywrap(){ return 1; }
@@ -92,8 +94,18 @@ float calculateMantisaValue(int value){
                 mantisaValue=mantisaValue/10;
         return mantisaValue;
 } 
-float calculateExponentValue(int value){
 
+
+float calculateExponentValue(int signedValue, int unsignedValue){
+        int countDigits = 1;
+        int unsignedValueBackup = unsignedValue;
+        while (unsignedValueBackup > 10){
+                countDigits++;
+                unsignedValueBackup = unsignedValueBackup/10;
+                printf("digits %i\n", countDigits);
+        }
+        signedValue=signedValue* pow(10,countDigits);
+        return signedValue > 0? signedValue + unsignedValue: signedValue - unsignedValue;
 }
 
 int main(int argn, char **argv)
@@ -104,7 +116,7 @@ int main(int argn, char **argv)
 }
 
 
-#line 108 "y.tab.c"
+#line 120 "y.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -173,13 +185,13 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 39 "yacc4.y"
+#line 51 "yacc4.y"
 
  int iValue; /* integer value */
- char sIndex; /* symbol table index */
+ const char * sIndex; /* symbol table index */
  float fValue;
 
-#line 183 "y.tab.c"
+#line 195 "y.tab.c"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -548,7 +560,7 @@ union yyalloc
 /* YYNNTS -- Number of nonterminals.  */
 #define YYNNTS  6
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  11
+#define YYNRULES  10
 /* YYNSTATES -- Number of states.  */
 #define YYNSTATES  19
 
@@ -600,8 +612,8 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int8 yyrline[] =
 {
-       0,    52,    52,    62,    65,    70,    77,    82,    86,    87,
-      90,    91
+       0,    64,    64,    75,    80,    85,    92,    98,   103,   108,
+     112
 };
 #endif
 
@@ -652,8 +664,8 @@ static const yytype_int8 yypact[] =
    means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
-       0,     0,     0,     0,     0,     0,     0,     1,     8,     0,
-       7,     5,     4,    11,    10,     3,     2,     6,     9
+       0,     0,     0,     0,     0,     0,     0,     1,     0,     0,
+       7,     5,     4,    10,     9,     3,     2,     6,     8
 };
 
 /* YYPGOTO[NTERM-NUM].  */
@@ -695,14 +707,14 @@ static const yytype_int8 yystos[] =
 static const yytype_int8 yyr1[] =
 {
        0,     9,    10,    11,    12,    12,    13,    13,    14,    14,
-      14,    14
+      14
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr2[] =
 {
-       0,     2,     3,     2,     3,     3,     2,     1,     0,     2,
-       1,     1
+       0,     2,     3,     2,     3,     3,     2,     1,     2,     1,
+       1
 };
 
 
@@ -1166,73 +1178,94 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* startLabel: mantisa exponent ENTER  */
-#line 52 "yacc4.y"
+#line 64 "yacc4.y"
                                       {
                       printf("Number is correct!");
-                      printf("\nMantisa value: %f\n", (yyvsp[-2].fValue));
+                      float mantisaValue = (yyvsp[-2].fValue);
+                      float exponentValue = (yyvsp[-1].iValue);
+                      printf("\nMantisa value: %f\n",  mantisaValue);
+                      printf("\nExponent value: %f\n", exponentValue);
                       printf("\n");
-                      return 1;
-                      
-                      
+                      return 1;   
                 }
-#line 1179 "y.tab.c"
+#line 1192 "y.tab.c"
+    break;
+
+  case 3: /* exponent: EXP exponentNumber  */
+#line 75 "yacc4.y"
+                                  {
+                        (yyval.iValue) = (yyvsp[0].iValue);
+                }
+#line 1200 "y.tab.c"
     break;
 
   case 4: /* mantisa: SIGNEDNUMBER SEPARATOR repeatingNumber  */
-#line 65 "yacc4.y"
+#line 80 "yacc4.y"
                                                       {
-                        float firstNum = (yyvsp[-2].iValue);
+                        float firstNum = atoi((yyvsp[-2].sIndex));
                         double secondNum = calculateMantisaValue((yyvsp[0].iValue));
                         (yyval.fValue) = firstNum > 0? firstNum + secondNum: firstNum - secondNum;
                 }
-#line 1189 "y.tab.c"
+#line 1210 "y.tab.c"
     break;
 
   case 5: /* mantisa: NUMBER SEPARATOR repeatingNumber  */
-#line 70 "yacc4.y"
+#line 85 "yacc4.y"
                                                   {
-                        float firstNum = (yyvsp[-2].iValue);
+                        float firstNum = atoi((yyvsp[-2].sIndex));
                         double secondNum = calculateMantisaValue((yyvsp[0].iValue));
                         (yyval.fValue) = firstNum +  secondNum;
                 }
-#line 1199 "y.tab.c"
+#line 1220 "y.tab.c"
     break;
 
   case 6: /* repeatingNumber: repeatingNumber NUMBER  */
-#line 78 "yacc4.y"
+#line 93 "yacc4.y"
                 {
-                        int repeatingNumberValue = (yyvsp[-1].iValue)*10 + (yyvsp[0].iValue);
+                        
+                        int repeatingNumberValue = (yyvsp[-1].iValue)*10 + atoi((yyvsp[0].sIndex));
                         (yyval.iValue) = repeatingNumberValue;
                 }
-#line 1208 "y.tab.c"
+#line 1230 "y.tab.c"
     break;
 
   case 7: /* repeatingNumber: NUMBER  */
-#line 82 "yacc4.y"
+#line 98 "yacc4.y"
                        {
+                        (yyval.iValue) = atoi((yyvsp[0].sIndex));
+                }
+#line 1238 "y.tab.c"
+    break;
+
+  case 8: /* exponentNumber: SIGNEDNUMBER repeatingNumber  */
+#line 103 "yacc4.y"
+                                            {
+                        printf("firstArgTest %s\nsecondArgsTest %i\n", (yyvsp[-1].sIndex), (yyvsp[0].iValue) );
+
+                        (yyval.iValue) = atoi((yyvsp[-1].sIndex));
+                }
+#line 1248 "y.tab.c"
+    break;
+
+  case 9: /* exponentNumber: repeatingNumber  */
+#line 109 "yacc4.y"
+                {
                         (yyval.iValue) = (yyvsp[0].iValue);
                 }
-#line 1216 "y.tab.c"
+#line 1256 "y.tab.c"
     break;
 
-  case 9: /* exponentNumber: SIGNEDNUMBER repeatingNumber  */
-#line 87 "yacc4.y"
-                                              {
-                        (yyval.iValue) = (yyvsp[-1].iValue);
-                }
-#line 1224 "y.tab.c"
-    break;
-
-  case 11: /* exponentNumber: SIGNEDNUMBER  */
-#line 91 "yacc4.y"
+  case 10: /* exponentNumber: SIGNEDNUMBER  */
+#line 112 "yacc4.y"
                                {
-                        (yyval.iValue) = (yyvsp[0].iValue);
+                        int num = atoi((yyvsp[0].sIndex));
+                        (yyval.iValue) = num;
                 }
-#line 1232 "y.tab.c"
+#line 1265 "y.tab.c"
     break;
 
 
-#line 1236 "y.tab.c"
+#line 1269 "y.tab.c"
 
       default: break;
     }
@@ -1425,4 +1458,4 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 98 "yacc4.y"
+#line 120 "yacc4.y"

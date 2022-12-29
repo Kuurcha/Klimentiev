@@ -445,8 +445,9 @@ char *yytext;
 #line 2 "lex4.l"
 #include <stdio.h>
 #include "y.tab.h"
-#line 449 "lex.yy.c"
+#include <stdarg.h> 
 #line 450 "lex.yy.c"
+#line 451 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -663,9 +664,11 @@ YY_DECL
 		}
 
 	{
-#line 6 "lex4.l"
+#line 7 "lex4.l"
 
-#line 669 "lex.yy.c"
+
+
+#line 672 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -724,30 +727,30 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 7 "lex4.l"
+#line 10 "lex4.l"
 { 
-                  yylval.iValue=atoi(yytext);
+                  yylval.sIndex=yytext; 
                 return SIGNEDNUMBER; 
               }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 11 "lex4.l"
-{ 
-                yylval.iValue=atoi(yytext); 
+#line 14 "lex4.l"
+{
+                yylval.sIndex=yytext; 
                 return NUMBER; 
               }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 15 "lex4.l"
+#line 18 "lex4.l"
 {
                 return SEPARATOR;
               }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 18 "lex4.l"
+#line 21 "lex4.l"
 { 
                 return EXP;
               }
@@ -755,7 +758,7 @@ YY_RULE_SETUP
 case 5:
 /* rule 5 can match eol */
 YY_RULE_SETUP
-#line 21 "lex4.l"
+#line 24 "lex4.l"
 {
                 return ENTER;
               }
@@ -763,17 +766,17 @@ YY_RULE_SETUP
 case 6:
 /* rule 6 can match eol */
 YY_RULE_SETUP
-#line 24 "lex4.l"
+#line 27 "lex4.l"
 {
                 return INVALIDEXPONENT;
               }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 28 "lex4.l"
+#line 31 "lex4.l"
 ECHO;
 	YY_BREAK
-#line 777 "lex.yy.c"
+#line 780 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1778,7 +1781,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 28 "lex4.l"
+#line 31 "lex4.l"
 
 
 

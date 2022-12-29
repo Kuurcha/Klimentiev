@@ -4,6 +4,6 @@ yacc:
 lexx:
 	lex lex4.l
 compile: 
-	gcc y.tab.c lex.yy.c  -o main
+	gcc y.tab.c lex.yy.c  -o main -lm
 clean: 
 	rm -rf y.tab.c rm -rf y.tab.h
