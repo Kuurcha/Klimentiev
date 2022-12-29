@@ -612,8 +612,8 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int8 yyrline[] =
 {
-       0,    64,    64,    75,    80,    85,    92,    98,   103,   108,
-     112
+       0,    64,    64,    75,    80,    85,    92,    98,   103,   106,
+     110
 };
 #endif
 
@@ -1240,32 +1240,30 @@ yyreduce:
   case 8: /* exponentNumber: SIGNEDNUMBER repeatingNumber  */
 #line 103 "yacc4.y"
                                             {
-                        printf("firstArgTest %s\nsecondArgsTest %i\n", (yyvsp[-1].sIndex), (yyvsp[0].iValue) );
-
                         (yyval.iValue) = atoi((yyvsp[-1].sIndex));
                 }
-#line 1248 "y.tab.c"
+#line 1246 "y.tab.c"
     break;
 
   case 9: /* exponentNumber: repeatingNumber  */
-#line 109 "yacc4.y"
+#line 107 "yacc4.y"
                 {
                         (yyval.iValue) = (yyvsp[0].iValue);
                 }
-#line 1256 "y.tab.c"
+#line 1254 "y.tab.c"
     break;
 
   case 10: /* exponentNumber: SIGNEDNUMBER  */
-#line 112 "yacc4.y"
+#line 110 "yacc4.y"
                                {
                         int num = atoi((yyvsp[0].sIndex));
                         (yyval.iValue) = num;
                 }
-#line 1265 "y.tab.c"
+#line 1263 "y.tab.c"
     break;
 
 
-#line 1269 "y.tab.c"
+#line 1267 "y.tab.c"
 
       default: break;
     }
@@ -1458,4 +1456,4 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 120 "yacc4.y"
+#line 118 "yacc4.y"
